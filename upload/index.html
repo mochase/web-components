@@ -1,63 +1,85 @@
-<!-- 一个图片预览上传的示例 -->
+<!-- 图片预览上传 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Document</title>
 </head>
 <body>
-    <label for="file" class="button">
-        选取文件
-        <input type="file" id="file">
-    </label>
-    <div id="snapshot"></div>
-    <button class="submit"> 提交 </button>
+    <label for="file" class="btn btn-sm btn-primary" role="button">选取文件</label>   
+    <input type="file" id="file">
+    <button class="btn btn-sm btn-success submit"> 提交 </button>
+    <div class="snapshot"></div>
+    
 </body>
+<style>
+    body {
+        padding: 20px;
+    }
+    #file {
+        display: none;
+    }
+    .submit {
+        vertical-align: top;
+    }
+    .snapshot {
+        width: 200px;
+        height: 200px;
+        border-radius: 4px;
+        border: 1px dashed #ddd;
+    }
+    .snapshot img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+</style>
+
 <script>
-    var file;
+    var file
     var el = document.querySelector('#file')
-    var snapshot = document.querySelector('#snapshot')
+
     el.addEventListener('change', function (e) {
         file = e.target.files[0]
-        var image = new Image(300, 300)
+        if (file.size / 1024/ 1024 > 8) {
+            window.alert('文件尺寸不能超过8 Mb!') 
+            return
+            
+        }
+        if ( file.type.indexOf('image') === -1) {
+            window.alert('请上传图片!')
+            return
+        }
+        
+        var image = new Image()
         var fileReader = new FileReader()
         fileReader.readAsDataURL(file)
         fileReader.onload = function () {
             image.src = fileReader.result
+            var snapshot = document.querySelector('.snapshot')
+            snapshot.innerHTML = ''
             snapshot.appendChild(image)
         }
     })
     
-    var button = document.querySelector('.submit')
-    button.addEventListener('click', function () {
+    var btn = document.querySelector('.submit')
+    btn.addEventListener('click', function () {
         var xhr = new XMLHttpRequest()
         var formData = new FormData()
         formData.append('file', file)
-        // ...
-        formData.append('some_key', 'some_value')
-
-        xhr.open('POST', 'http://localhost:8080/api/tickets/create')
-        xhr.setRequestHeader('Authorization', 'some_auth_token')
+        xhr.open('POST', 'http://some/url')
+        xhr.setRequestHeader('Authorization', 'some_token')
         xhr.send(formData)
-        xhr.onload = function () {
-            if (this.status === 200) {
+        xhr.onload = function (e) {
+            if (e.status === 200) {
                 console.log('上传成功')
             } else {
-                console.error('上传失败', this.status)
+                console.error('上传失败', e)
             }
         }
     })
 </script>
-<style>
-    #file {
-        display: none;
-    }
-    label.button {
-        -webkit-appearance: button;
-        appearance: button;
-        margin-bottom: 8px;
-    }
-</style>
 </html>
