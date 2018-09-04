@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div class="mobile-menu-animation"></div>
+    </div>
+</body>
+<script>
+    window.onload = function () {
+        var el = document.querySelector('.mobile-menu-animation')
+        el.addEventListener('click', function () {
+            el.classList.toggle('mobile-menu-animation-active')
+        })
+    }
+</script>
+<style>
+    .container {
+        width: 300px;
+        height: 300px;
+        box-sizing: border-box;
+        border: 1px dashed #ddd;
+    }
+    /* start */
+
+    .mobile-menu-animation {
+      width: 22px;
+      height: 20px;
+      position: relative;
+    }
+    .mobile-menu-animation::before, .mobile-menu-animation::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 4px;
+      background-color: #000;
+      border-radius: 2px;
+      position: absolute;
+      left: 0;
+      transition: all 0.15s ease-in-out;
+    }
+    .mobile-menu-animation::before {
+      top: 0;
+      box-shadow: 0 8px #000;
+    }
+    .mobile-menu-animation::after {
+      bottom: 0;
+    }
+    .mobile-menu-animation-active::before {
+        top: 8px;
+        box-shadow: none;
+        transform: rotate(225deg)
+    }
+    .mobile-menu-animation-active::after {
+        bottom: 8px;
+        transform: rotate(135deg)
+    }
+</style>
+</html>

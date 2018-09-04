@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="gallery">
+        <div class="bar">
+            <span class="bar-item">ALL</span>
+            <span class="bar-item">FAMILY</span>
+            <span class="bar-item">PROGRAM</span>
+            <span class="bar-item">MESSTING</span>
+            <span class="bar-item">SHOOTING</span>
+        </div>
+        <div class="container">
+            <div class="row no-gutters">
+                <div class="img-wrapper" style="width: 50%">
+                    <img src="./gallery1.jpg" alt="">
+                </div>
+
+                <div class="img-wrapper" style="width: 25%"><img src="./gallery2.jpg" alt=""></div>
+
+                <div class="img-wrapper"  style="width: 25%"><img src="./gallery3.jpg" alt=""></div>
+
+                <div class="img-wrapper" style="width: 25%">
+                    <img src="./gallery4.jpg" alt="">
+                </div>
+        
+                <div class="img-wrapper" style="width: 50%"><img src="./gallery5.jpg" alt=""></div>
+            
+                <div class="img-wrapper" style="width: 25%"><img src="./gallery6.jpg" alt=""></div>
+            </div>
+        </div>
+        <div class="mask">
+            <div class="arrow-left">
+                <i class="fas fa-lg fa-angle-left arrow-left"></i>
+            </div>
+            <div class="snap-wrapper">
+                <span class="snap-icon"><i class="fas fa-times"></i></span>
+                <div class="snap-img-wrapper"></div>
+                <span class="snap-meta"></span>
+            </div>
+            <div class="arrow-right"><i class="fas fa-lg fa-angle-right arrow-right"></i></div>
+        </div>
+    </div>
+</body>
+<style>
+    .gallery {
+        margin-top: 40px;
+        font-size: 14px;
+    }
+
+    /* 顶部 bar */
+    .bar {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .bar-item {
+        text-align: center;
+        margin: 0 16px;
+        cursor: pointer;
+    }
+
+    .bar-item-active {
+        color: #9a9a9a;
+    }
+
+    /* 相册遮罩 */
+    .mask {
+        display: none;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        background-color: rgba(0,0,0,0.75);
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mask .arrow-left, .mask .arrow-right {
+        font-size: 1.5em;
+        color: #fff;
+        cursor: pointer;
+    }
+    
+    .mask .arrow-left {
+        margin-left: 50px;
+    }
+    .mask .arrow-right {
+        margin-right: 50px;
+    }
+
+    .snap-img {
+        max-width: 800px;
+        max-height: 80vh;
+    }
+
+    .snap-icon {
+        float: right;
+        color: #eee;
+        font-size: 14px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
+    .snap-meta {
+        float: right;
+        color: #eee;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    .img-wrapper {
+        height: 300px;
+        overflow: hidden;
+        cursor: crosshair;
+        transition: all 0.3s ease-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .img-wrapper:hover {
+        opacity: 0.8;
+    }
+    .img-wrapper img {
+        min-width: 100%;
+        min-height: 100%;
+    }
+
+    .row {
+        position: relative;
+        height: 300px;
+    }
+
+    /* 图片的位置信息 */
+    .active-1 {
+        transform: scale(1);
+        top: 0;
+        left: 0;      
+    }
+    .active-2 {
+        transform: scale(1);
+        top: 0;
+        left: 25%
+    }
+    .active-3 {
+        transform: scale(1);
+        top: 0;
+        left: 50%
+    }
+    .active-4 {
+        transform: scale(1);
+        top: 0;
+        left: 75%
+    }
+    .active-5 {
+        transform: scale(1);
+        top: 300px;
+        left: 0
+    }
+    .active-6 {
+        transform: scale(1);
+        top: 300px;
+        left: 25%
+    }
+    .active-7 {
+        transform: scale(1);
+        top: 300px;
+        left: 50%;
+    }
+    .active-8 {
+        transform: scale(1);
+        top: 300px;
+        left: 75%
+    }
+    .active-disable {
+        transform: scale(0);
+        top: auto;
+        left: auto;
+    }
+</style>
+
+<!-- "-1"表示图片不显示,其他数字表示图片的位置,分别为1,2,3,4,5,6,7,8(这里以八等分为例) -->
+<!-- 用二维数组来描述各图片的位置状态 -->
+
+<!-- 可扩展: 调整图片宽度和数量, 更改相应 active-n的定位即可 -->
+
+<script>
+    // 定义图片当前的位置
+    const initMap = [
+        [1, 3, 4, 5, 6, 8],
+        [-1, -1, 4, 5, 6, -1],
+        [1, -1, 3, -1, -1, -1],
+        [1, -1, 5, -1, 7, -1],
+        [2, -1, -1, -1, -1, 8]
+    ];
+
+    (function gallery (showList) {
+        var _index = 0
+        var nodeList = Array.from(document.querySelectorAll('.gallery .img-wrapper'))
+        var btnList = Array.from(document.querySelectorAll('.gallery .bar-item'))
+
+        var imgList = Array.from(document.querySelectorAll('.gallery .img-wrapper img'))
+        var _len = imgList.length
+
+        nodeList.forEach(function (item, index) {
+            item.classList.add(`active-${showList[0][index]}`)
+        })
+
+        btnList.forEach(function (item, index, arr) {
+            item.addEventListener('click', function (e) {
+                e.preventDefault()
+                var isActiveNode = document.querySelector('.bar-item-active')
+                if (isActiveNode) {
+                    isActiveNode.classList.remove('bar-item-active')
+                }
+                item.classList.add('bar-item-active')
+                var t = showList[index]
+                nodeList.forEach(function (i, $index) {
+                    switch(t[$index]) {
+                        case 1: {
+                            i.className = 'img-wrapper active-1'
+                            i.style.transform = 'scale(1)'
+                            break
+                        };
+                        case 2: {
+                            i.className = 'img-wrapper active-2'
+                            i.style.transform = 'scale(1)'
+                            break
+                        };
+                        case 3: {
+                            i.className = 'img-wrapper active-3'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case 4: {
+                            i.className = 'img-wrapper active-4'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case 5: {
+                            i.className = 'img-wrapper active-5'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case 6: {
+                            i.className = 'img-wrapper active-6'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case 7: {
+                            i.className = 'img-wrapper active-7'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case 8: {
+                            i.className = 'img-wrapper active-8'
+                            i.style.transform = 'scale(1)'
+                            break
+                        }
+                        case -1: {
+                            i.style.transform = 'scale(0)'
+                            break
+                        }
+                    }
+                })
+            })
+        })
+
+        imgList.forEach(function (item, index, arr) {
+            item.addEventListener('click', function (e) {
+                e.preventDefault()
+                document.querySelector('.mask').style.display = 'flex'
+                _index = index
+                // 不能直接修改 e.target
+                var img = e.target.cloneNode(true)
+                img.className = 'snap-img'
+                document.querySelector('.gallery .snap-img-wrapper').appendChild(img)
+                document.querySelector('.gallery .snap-meta').innerHTML = `${_index + 1} of ${_len}`
+            })
+        })
+
+        // 左移相册
+        document.querySelector('.arrow-left').addEventListener('click', function (e) {
+            e.preventDefault()
+            _index = (_index + _len - 1) % _len
+            var node = imgList[_index].cloneNode(true)
+            node.className = 'snap-img'
+            var parent = document.querySelector('.gallery .snap-img-wrapper')
+            var old = parent.children[0]
+            parent.replaceChild(node, old)
+            document.querySelector('.gallery .snap-meta').innerHTML = `${_index + 1} of ${_len}`
+        })
+        // 右移相册
+        document.querySelector('.arrow-right').addEventListener('click', function (e) {
+            e.preventDefault()
+            _index = (_index + 1) % _len
+            var node = imgList[_index].cloneNode(true)
+            node.className = 'snap-img'
+            var parent = document.querySelector('.gallery .snap-img-wrapper')
+            var old = parent.children[0]
+            parent.replaceChild(node, old)
+            document.querySelector('.gallery .snap-meta').innerHTML = `${_index + 1} of ${_len}`
+        })
+        
+        // 关闭相册
+        document.querySelector('.gallery .snap-icon').addEventListener('click', function (e) {
+            e.preventDefault()
+            _closeSnap()
+        })
+
+        window.onkeyup = function (e) {
+            e.preventDefault()
+            // ESC 键
+            if (e.keyCode === 27) {
+                _closeSnap()
+            }
+        }
+
+        function _closeSnap () {
+            document.querySelector('.mask').style.display = 'none'
+            document.querySelector('.gallery .snap-img-wrapper').innerHTML = ''
+        }
+    })(initMap)
+</script>
+</html>

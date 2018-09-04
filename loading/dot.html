@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    订单提交中<div>...</div>
+    <style>
+        div {
+            display: inline-block;
+            width: 3ch;
+            text-indent: -2ch;/*核心是等宽字体，用ch单位控制文本缩进配合overflow：hidden*/
+            overflow: hidden;
+            vertical-align: bottom;
+            animation: dot 3s infinite step-start both;
+            font-family: Consolas, Monaco, monospace;
+        }
+
+        @keyframes dot{
+            33% {text-indent: -1ch;}
+            66% {text-indent: 0}
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="carousel">
+        <div class="container">
+            <div class="img-wrapper active"><img src="./1.jpeg" alt=""></div>
+            <div class="img-wrapper"><img src="./2.jpeg" alt=""></div>
+            <div class="img-wrapper"><img src="./3.jpeg" alt=""></div>
+        </div>
+        <div class="btn-group">
+            <div class="btn-item btn-active"></div>
+            <div class="btn-item"></div>
+            <div class="btn-item"></div>
+        </div>
+        <div class="arrow-left"><i class="fas fa-lg fa-angle-left"></i></div>
+        <div class="arrow-right"><i class="fas fa-lg fa-angle-right"></i></div>
+    </div>
+
+    <style>
+        .carousel {
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .container {
+            height: 100%;
+            font-size: 0;
+            position: relative;
+        }
+        .img-wrapper {
+            visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            transition: all 0.6s ease;
+            transform: translateX(0);
+        }
+        .img-wrapper img {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .active {
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .prev {
+            transform: translateX(-100%)
+        }
+        .next {
+            transform: translateX(100%)
+        }
+
+        .btn-group {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%)
+        }
+        
+        .btn-group div {
+            display: inline-block;
+            margin: 0 4px;
+            width: 30px;
+            height: 4px;
+            background-color: #fff;
+        }
+
+        .btn-active {
+            background-color: #1890ff !important;
+        }
+
+        .arrow-left, .arrow-right {
+            position: absolute;
+            top: 190px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1.5em;
+
+        }
+        .arrow-left:hover, .arrow-right:hover {
+            opacity: 0.7
+        }
+        .arrow-left {
+            left: 50px;
+        }
+        .arrow-right {
+            right: 50px;
+        }
+    </style>
+    <script>
+        (function carousel () {
+            var handle;
+            // 当前激活 item
+            var i = 0;
+            // 按钮是否可点击
+            var _active = true
+
+            var nodeList = Array.from(document.querySelectorAll('.carousel .img-wrapper'))
+            var len = nodeList.length
+            nodeList[(i+1)%len].classList.add('next')
+            nodeList[(i+len-1)%len].classList.add('prev')
+            var btnList = Array.from(document.querySelectorAll('.carousel .btn-item'))
+
+            autoSlide()
+
+            function autoSlide () {
+                handle =  setInterval(function () {
+                    i = (i + 1) % len
+                    _attchCls()
+                }, 4000)
+            }
+
+            function _attchCls () {
+                if (!_active) {
+                    return
+                }
+                _active = false
+                // btn active
+                document.querySelector('.carousel .btn-active').classList.remove('btn-active')
+                btnList[i].classList.add('btn-active')
+                // active item
+                nodeList[i].classList.add('active')
+                nodeList[i].classList.remove('prev')
+                nodeList[i].classList.remove('next')
+                // prev item
+                nodeList[(i+len-1)%len].classList.add('prev')
+                nodeList[(i+len-1)%len].classList.remove('next')
+                nodeList[(i+len-1)%len].classList.remove('active')
+                // next item
+                nodeList[(i+1)%len].classList.add('next')
+                nodeList[(i+1)%len].classList.remove('active')
+                nodeList[(i+1)%len].classList.remove('prev')
+                setTimeout(function () {
+                    _active = true
+                }, 800)
+                
+            }
+
+            document.querySelector('.carousel .arrow-left').addEventListener('click', function (e) {
+                e.preventDefault()
+                if (!_active) {
+                    return
+                }
+                clearInterval(handle)
+                i = (i + len - 1 ) % len
+                _attchCls()
+                autoSlide()
+            })
+
+            document.querySelector('.carousel .arrow-right').addEventListener('click', function (e) {
+                e.preventDefault()
+                if (!_active) {
+                    return
+                }
+                clearInterval(handle)
+                i = (i + 1) % len
+                _attchCls()
+                autoSlide()
+            }) 
+        })()
+ 
+    </script>
+</body>
+</html>
