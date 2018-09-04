@@ -1,3 +1,4 @@
+<!-- 轮播组件 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,15 +10,15 @@
 </head>
 <body>
     <div class="carousel">
-        <div class="container">
-            <div class="img-wrapper active"><img src="./1.jpeg" alt=""></div>
-            <div class="img-wrapper"><img src="./2.jpeg" alt=""></div>
-            <div class="img-wrapper"><img src="./3.jpeg" alt=""></div>
-        </div>
-        <div class="btn-group">
-            <div class="btn-item btn-active"></div>
-            <div class="btn-item"></div>
-            <div class="btn-item"></div>
+        <div class="item-wrapper"><img src="./1.png" alt=""></div>
+        <div class="item-wrapper"><img src="./2.jpg" alt=""></div>
+        <div class="item-wrapper"><img src="./3.jpg" alt=""></div>
+        <div class="item-wrapper"><img src="./4.png" alt=""></div>
+        <div class="indicator-group">
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
         </div>
         <div class="arrow-left"><i class="fas fa-lg fa-angle-left"></i></div>
         <div class="arrow-right"><i class="fas fa-lg fa-angle-right"></i></div>
@@ -26,31 +27,25 @@
     <style>
         .carousel {
             width: 100%;
-            height: 400px;
+            height: 500px;
             overflow: hidden;
             position: relative;
         }
-        .container {
-            height: 100%;
-            font-size: 0;
-            position: relative;
-        }
-        .img-wrapper {
-            visibility: hidden;
+        .item-wrapper {
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            transition: all 0.6s ease;
+            transition: all 0.5s ease-in-out;
             transform: translateX(0);
+            visibility: hidden;
         }
-        .img-wrapper img {
-            margin: 0;
-            padding: 0;
+        .item-wrapper img {
             width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .active {
@@ -65,28 +60,30 @@
             transform: translateX(100%)
         }
 
-        .btn-group {
+        .indicator-group {
             position: absolute;
-            bottom: 30px;
+            bottom: 35px;
             left: 50%;
             transform: translateX(-50%)
         }
         
-        .btn-group div {
+        .indicator-group .indicator {
             display: inline-block;
             margin: 0 4px;
-            width: 30px;
+            width: 36px;
             height: 4px;
             background-color: #fff;
+            border-radius: 4px;
         }
 
-        .btn-active {
+        .indicator--active {
             background-color: #1890ff !important;
         }
 
         .arrow-left, .arrow-right {
             position: absolute;
-            top: 190px;
+            top: 50%;
+            transform: translateY(-50%);
             color: #fff;
             cursor: pointer;
             font-size: 1.5em;
@@ -109,16 +106,18 @@
             var i = 0;
             // 按钮是否可点击
             var _active = true
-
-            var nodeList = Array.from(document.querySelectorAll('.carousel .img-wrapper'))
+            // 初始化
+            var nodeList = Array.from(document.querySelectorAll('.carousel .item-wrapper'))
             var len = nodeList.length
+            nodeList[i].classList.add('active')
             nodeList[(i+1)%len].classList.add('next')
             nodeList[(i+len-1)%len].classList.add('prev')
-            var btnList = Array.from(document.querySelectorAll('.carousel .btn-item'))
+            var btnList = Array.from(document.querySelectorAll('.carousel .indicator'))
+            btnList[i].classList.add('indicator--active')
 
-            autoSlide()
+            _circulate()
 
-            function autoSlide () {
+            function _circulate () {
                 handle =  setInterval(function () {
                     i = (i + 1) % len
                     _attchCls()
@@ -130,9 +129,9 @@
                     return
                 }
                 _active = false
-                // btn active
-                document.querySelector('.carousel .btn-active').classList.remove('btn-active')
-                btnList[i].classList.add('btn-active')
+                // active indicator
+                document.querySelector('.carousel .indicator--active').classList.remove('indicator--active')
+                btnList[i].classList.add('indicator--active')
                 // active item
                 nodeList[i].classList.add('active')
                 nodeList[i].classList.remove('prev')
@@ -147,10 +146,10 @@
                 nodeList[(i+1)%len].classList.remove('prev')
                 setTimeout(function () {
                     _active = true
-                }, 800)
+                }, 500)
                 
             }
-
+            // 翻页
             document.querySelector('.carousel .arrow-left').addEventListener('click', function (e) {
                 e.preventDefault()
                 if (!_active) {
@@ -159,7 +158,7 @@
                 clearInterval(handle)
                 i = (i + len - 1 ) % len
                 _attchCls()
-                autoSlide()
+                _circulate()
             })
 
             document.querySelector('.carousel .arrow-right').addEventListener('click', function (e) {
@@ -170,7 +169,7 @@
                 clearInterval(handle)
                 i = (i + 1) % len
                 _attchCls()
-                autoSlide()
+                _circulate()
             }) 
         })()
  
