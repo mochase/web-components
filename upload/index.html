@@ -74,7 +74,7 @@
         xhr.setRequestHeader('Authorization', 'some_token')
         xhr.send(formData)
         xhr.onload = function (e) {
-            if (e.status === 200) {
+            if (e.currentTarget.status === 200) {
                 console.log('上传成功')
             } else {
                 console.error('上传失败', e)

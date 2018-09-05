@@ -1,89 +1,198 @@
+<!-- 图片的自定义裁剪,预览,上传组件(编辑用户头像) -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Cropper.js</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.0/cropper.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.0/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row no-gutters">
+      <div class="cropper-container">
+        <!-- <img src="#" alt=""> -->
+      </div>
+      <div class="snapshot-container text-center">
+        <div class="preview-wrapper">
+          <!-- <img src="" alt=""> -->
+        </div>
+        <p class="preview-text"> Preview </p>
+        <label for="fileInput" class="btn btn-primary btn-select">选择图片</label>
+        <input type="file" id="fileInput">
+        <p class="intro-text">点击"选择图片",完成自定义编辑后,点击"保存"完成上传头像操作.</p>
+        <div class="btn-wrapper">
+          <button class="btn btn-secondary">取消</button>
+          <button class="btn btn-success btn-submit">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <style>
     .container {
-      max-width: 640px;
-      margin: 20px auto;
+      padding: 40px;
+      background: #eee;
     }
-    img {
+    .cropper-container {
+      width: 560px;
+      height: 420px;
+      margin-right: 90px;
+      border-radius: 4px;
+      background: url(./bg-masaike.png);
+      overflow: hidden;
+    }
+
+    .cropper-container img {
       max-width: 100%;
     }
+
     .cropper-view-box,
     .cropper-face {
       border-radius: 50%;
     }
+
+    .snapshot-container {
+      width: 200px;
+      position: relative;
+    }
+
+    .snapshot-container .preview-wrapper {
+      height: 200px;
+      width: 200px;
+      background: #fff;
+      margin-bottom: 16px;
+      background: url(./bg-avatar.png);
+      background-size: cover;
+    }
+    .snapshot-container .preview-wrapper img {
+      width: 100%;
+      border-radius: 100%
+    }
+
+    .snapshot-container .preview-text {
+      font-size: 18px;
+    }
+
+    .snapshot-container .select-btn {
+      width: 130px;
+    }
+
+    .snapshot-container input[type="file"] {
+      display: none;
+    }
+    .snapshot-container .intro-text {
+      font-size: 10px;
+      margin-top: 18px;
+      text-align: left;
+    }
+
+    .btn-wrapper {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn-wrapper button {
+      width: 90px;
+    }
+
   </style>
-</head>
-<body>
-
-  <div class="container">
-    <h1>Crop a round image</h1>
-    <h3>Image</h3>
-    <div>
-      <img id="image" src="./demo.jpg" alt="Picture">
-    </div>
-    <h3>Result</h3>
-    <p>
-      <button type="button" id="button">Crop</button>
-    </p>
-    <div id="result"></div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.4.0/cropper.min.js"></script>
   <script>
     (function () {
-      function getRoundedCanvas(sourceCanvas) {
-        var canvas = document.createElement('canvas');
-        var context = canvas.getContext('2d');
-        var width = sourceCanvas.width;
-        var height = sourceCanvas.height;
-        canvas.width = width;
-        canvas.height = height;
-        context.imageSmoothingEnabled = true;
-        context.drawImage(sourceCanvas, 0, 0, width, height);
-        context.globalCompositeOperation = 'destination-in';
-        context.beginPath();
-        context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI, true);
-        context.fill();
-        return canvas;
+      var cropperHandle
+      var uploadFile
+
+      var input = document.querySelector('#fileInput')
+      var cropperContainer = document.querySelector('.cropper-container')
+      var preview = document.querySelector('.preview-wrapper')
+      var submit = document.querySelector('.btn-submit')
+
+      input.addEventListener('change', selectImage)
+      submit.addEventListener('click', upload)
+        
+      function selectImage(e) {
+        var file = e.target.files[0]
+        if (file.type.indexOf('image') === -1) {
+          window.alert('请上传正确格式的图片!')
+          return
+        }
+        if (cropperHandle) {
+          cropperHandle.destroy()
+        }
+        var fileReader = new FileReader()
+        fileReader.readAsDataURL(file)
+        fileReader.onload = function () {
+          cropperContainer.innerHTML = ''
+          var img = new Image()
+          img.src = fileReader.result
+          cropperContainer.appendChild(img)
+          // 实例化 cropper
+          cropperHandle = new Cropper(img, {
+            aspectRatio: 1,
+            viewMode: 1,
+            minCropBoxWidth: 40,
+            ready: function () {
+            },
+            crop: _.throttle(clipImage, 200)
+          })
+        }
       }
-      window.addEventListener('DOMContentLoaded', function () {
-        var image = document.getElementById('image');
-        var button = document.getElementById('button');
-        var result = document.getElementById('result');
-        var croppable = false;
-        var cropper = new Cropper(image, {
-          aspectRatio: 1,
-          viewMode: 1,
-          ready: function () {
-            croppable = true;
+
+      function clipImage () {
+        var croppedCanvas = cropperHandle.getCroppedCanvas()
+        var compressedCanvas = getCompressedCanvas(croppedCanvas)
+        var resultImage = new Image()
+        resultImage.src = compressedCanvas.toDataURL()
+        preview.innerHTML = ''
+        preview.appendChild(resultImage)
+        compressedCanvas.toBlob(function (blob) {
+          uploadFile = new File([blob], Date.now() + '.png', { type: 'image/png', lastModified: Date.now() })
+        })
+      }
+      
+      /*
+      * 用 canvas 压缩图片
+      */
+      function getCompressedCanvas(sourceCanvas) {
+        var canvas = document.createElement('canvas')
+        canvas.width = 200
+        canvas.height = 200
+        var context = canvas.getContext('2d')
+        context.imageSmoothingEnabled = true
+        context.drawImage(sourceCanvas, 0, 0, 200, 200)
+        return canvas
+      }
+
+      function upload () {
+        if (!uploadFile) {
+          window.alert('请先选择图片后再上传')
+          return
+        }
+        var formData = new FormData()
+        formData.append('file', uploadFile)
+        var request = new XMLHttpRequest()
+        request.open('POST', '/some/url')
+        request.setRequestHeader('Authorization', 'some_token')
+        request.send(formData)
+        request.onload = function (e) {
+          if (e.currentTarget.status === 200) {
+            window.alert('上传图片成功')
+          } else {
+            console.error(e)
           }
-        });
-        // button.onclick = function () {
-        //   var croppedCanvas;
-        //   var roundedCanvas;
-        //   var roundedImage;
-        //   if (!croppable) {
-        //     return;
-        //   }
-        //   // Crop
-        //   croppedCanvas = cropper.getCroppedCanvas();
-        //   // Round
-        //   roundedCanvas = getRoundedCanvas(croppedCanvas);
-        //   // Show
-        //   roundedImage = document.createElement('img');
-        //   roundedImage.src = roundedCanvas.toDataURL()
-        //   result.innerHTML = '';
-        //   result.appendChild(roundedImage);
-        // };
-      });
+        }
+      }
     })();
   </script>
 </body>
+
 </html>
