@@ -1,3 +1,4 @@
+<!-- 消息全局弹出框 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <script src="https://use.fontawesome.com/259e06b731.js"></script>
     <link rel="stylesheet" href="./index.css">
+    <script src="https://use.fontawesome.com/259e06b731.js"></script>
 </head>
 <body>
 </body>
@@ -14,11 +15,8 @@
 <script>
   window.onload = function () {
     // 注册组件
-    initMessageBox()
-    // 
-    setTimeout(function () {
-      message().info('组件调用成功.')
-    }, 2000)
+    var message = initMessage()
+    message('message 调用成功', { type: 'warning'})
   }
 </script>
 </html>
