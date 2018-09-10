@@ -1,18 +1,13 @@
 <!-- 这是一个通用的 loading 加载示例 -->
-<!-- 插入新的元素 mask 来做遮罩效果 -->
-<!-- target > mask > loadingElement -->
-<!-- mask 铺满 target 容器, target 可以为某一具体 element 或者 document.body -->
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 </head>
-
 <body>
     <div class="page">
         <div id="container">
@@ -25,31 +20,42 @@
     </div>
 </body>
 <style>
+    html {
+        position: relative;
+    }
     #container {
         height: 300px;
     }
-    .loading-position {
-        position: relative
-    }
-    /* mask */
+
+    /* loading */
     .mask {
-        background-color: rgba(255,255,255, 0.95);
-        z-index: 1;
+        background-color: rgba(255,255,255, 0.8);
+        z-index: 999;
         position: absolute;
         top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
     }
 
-    /* loading */
     .loader,
     .loader:before,
     .loader:after {
         background: orange;
-        -webkit-animation: load1 1s infinite ease-in-out;
-        animation: load1 1s infinite ease-in-out;
+        animation: load 0.8s infinite ease-in-out;
         width: 1em;
-        height: 4em;
+        height: 3em;
+    }
+
+    .loader {
+        text-indent: -9999em;
+        margin: 0 auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 11px;
+        animation-delay: 0.16s;
     }
 
     .loader:before,
@@ -63,65 +69,47 @@
         left: -1.5em;
     }
 
-    .loader {
-        text-indent: -9999em;
-        margin: 0 auto;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-        /*绝对定位的基准*/
-        font-size: 11px;
-        /*em的基准*/
-        -webkit-animation-delay: 0.16s;
-        animation-delay: 0.16s;
-    }
-
     .loader:after {
         left: 1.5em;
-        -webkit-animation-delay: 0.32s;
         animation-delay: 0.32s;
     }
     
-    @keyframes load1 {
+    @keyframes load {
         0%,
         80%,
         /*停顿效果*/
         100% {
             box-shadow: 0 0 orange;
-            height: 4em;
+            height: 3em;
         }
         40% {
             box-shadow: 0 -1em orange;
-            height: 5em;
+            height: 4em;
         }
     }
 </style>
 <script>
-    function loading (targetId) {
-        const _target = targetId ? document.querySelector(`#${targetId}`) : document.body
-        const _loading = document.createElement('div')
-        const _mask = document.createElement('div')
-        let instance = {
-        attach: function () {
-            _target.classList.add('loading-position')
-            _mask.className = 'mask'
-            _loading.className = 'loader'
-            _mask.appendChild(_loading)
-            _target.appendChild(_mask)
-        },
-        detach: function () {
-            _target.removeChild(_mask)
-            _target.classList.remove('loading-position')
+    function loading () {
+        var _target = document.body
+        var _mask = document.createElement('div')
+        _mask.className = 'mask'
+        var _loader = document.createElement('div')
+        _loader.className = 'loader'
+        _mask.appendChild(_loader)
+        return {
+            attach: function () {
+                _target.appendChild(_mask)
+            },
+            detach: function () {
+                _target.removeChild(_mask)
+            }
         }
-        }
-        return instance
     }
-    var loading = loading('container')
+    // 初始化
+    var loading = loading()
     // 加载 loading
     loading.attach()
     // 取消 loading
-    setTimeout(loading.detach, 1500)
+    setTimeout(loading.detach, 5000)
 </script>
 </html>

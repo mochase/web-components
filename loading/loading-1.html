@@ -9,62 +9,55 @@
 <body>
     <div class="loader">加载中...</div>
     <style>
-      .loader,
-      .loader:before,
-      .loader:after {
+    .loader,
+    .loader:before,
+    .loader:after {
         background: orange;
-        -webkit-animation: load1 1s infinite ease-in-out;
-        animation: load1 1s infinite ease-in-out;
+        animation: load 0.8s infinite ease-in-out;
         width: 1em;
-        height: 4em;
-      }
-      .loader:before,
-      .loader:after {
+        height: 3em;
+    }
+
+    .loader {
+        text-indent: -9999em;
+        margin: 0 auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 11px;
+        animation-delay: 0.16s;
+    }
+
+    .loader:before,
+    .loader:after {
         position: absolute;
         top: 0;
         content: '';
-      }
-      .loader:before {
+    }
+
+    .loader:before {
         left: -1.5em;
-      }
-      .loader {
-        text-indent: -9999em;
-        margin: 20% auto;
-        position: relative;/*绝对定位的基准*/
-        font-size: 11px; /*em的基准*/
-        -webkit-animation-delay: 0.16s;
-        animation-delay: 0.16s;
-      }
-      .loader:after {
+    }
+
+    .loader:after {
         left: 1.5em;
-        -webkit-animation-delay: 0.32s;
         animation-delay: 0.32s;
-      }/*
-      @-webkit-keyframes load1 {
+    }
+    
+    @keyframes load {
         0%,
         80%,
+        /*停顿效果*/
         100% {
-          box-shadow: 0 0 #FFF;
-          height: 4em;
+            box-shadow: 0 0 orange;
+            height: 3em;
         }
         40% {
-          box-shadow: 0 -1em orange;
-          height: 5em;
+            box-shadow: 0 -1em orange;
+            height: 4em;
         }
-      }*/
-      @keyframes load1 {
-        0%,
-        80%,/*停顿效果*/
-        100% {
-          box-shadow: 0 0 orange;
-          height: 4em;
-        }
-        40% {
-          box-shadow: 0 -1em orange;
-          height: 5em;
-        }
-      }
-
+    }
     </style>
 </body>
 </html>
