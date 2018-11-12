@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+</head>
+
+<body>
+    <div class="fullpage-wrapper">
+        <div class="item">1</div>
+        <div class="item">2</div>
+        <div class="item">3</div>
+        <div class="item">4</div>
+        <div class="indicator-wrapper">
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+        </div>
+    </div>
+</body>
+<style>
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .fullpage-wrapper {
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .fullpage-wrapper .item {
+        height: 100vh;
+    }
+
+    .indicator-wrapper {
+        position: fixed;
+        top: 50%;
+        right: 24px;
+        transform: translateY(-50%);
+    }
+
+    .indicator-wrapper .indicator {
+        width: 6px;
+        height: 6px;
+        transform: rotate(45deg);
+        background: #6611ff;
+        margin-bottom: 12px;
+        transition: all 0.3s ease-out;
+    }
+
+    .indicator-wrapper .indicator.indicator--active {
+        background: #000000;
+    }
+
+    /* custom */
+    .fullpage-wrapper .item {
+        line-height: 100vh;
+        text-align: center;
+        font-size: 100px;
+    }
+
+    .fullpage-wrapper .item:nth-child(1) {
+        background: aquamarine
+    }
+
+    .fullpage-wrapper .item:nth-child(2) {
+        background: blueviolet
+    }
+
+    .fullpage-wrapper .item:nth-child(3) {
+        background: cadetblue
+    }
+
+    .fullpage-wrapper .item:nth-child(4) {
+        background: darkgoldenrod
+    }
+</style>
+<script>
+    (function () {
+        var flag = false
+        var handle
+        var indicator = 0
+        var oneScreenHeight = document.body.clientHeight || document.documentElement.clientHeight
+        var indicatorList = Array.from(document.querySelectorAll('.fullpage-wrapper .indicator'))
+        var target = document.querySelector('.fullpage-wrapper')
+        indicatorList[indicator].classList.add('indicator--active')
+
+        target.addEventListener('wheel', function (e) {
+            e.preventDefault()
+        })
+
+        target.addEventListener('wheel', _.debounce(function (e) {
+            var direction = e.deltaY > 0
+            slideOneScreen(direction)
+        }, 650, {
+            'trailing': false,
+            'leading': true,
+            'maxWait': 1500
+        }))
+
+        // 键盘控制
+        window.onkeydown = function (e) {
+            if (e.keyCode === 33 || e.keyCode === 38) {
+                e.preventDefault()
+                slideOneScreen(false)
+            } else if (e.keyCode === 34 || e.keyCode === 40) {
+                e.preventDefault()
+                slideOneScreen()
+            }
+        }
+
+        window.onresize = _.debounce(function () {
+            oneScreenHeight = document.body.clientHeight || document.documentElement.clientHeight
+            target.scrollTop = indicator * oneScreenHeight
+        }, 200)
+
+        /**
+         * 
+         * @param {boolean} direction 默认向下
+         */
+        function slideOneScreen(direction = true) {
+            if (flag) {
+                return
+            }
+            if (!direction) {
+                if (indicator === 0) {
+                    return
+                }
+                indicator = indicator - 1
+            } else {
+                if (indicator === 3) {
+                    return
+                }
+                indicator = indicator + 1
+            }
+            syncIndicator()
+
+            flag = true
+            var originY = target.scrollTop
+            var cfg = {
+                distance: 0,
+                max: oneScreenHeight,
+                duration: 650,
+                step: 0
+            }
+            handle = requestAnimationFrame(slide)
+
+            function slide() {
+                cfg.step += 1000 / 60
+                if (cfg.step < cfg.duration) {
+                    if (!direction) {
+                        // 向上滚
+                        cfg.distance = easeInOut(cfg.step, 0, cfg.max, cfg.duration)
+                        target.scrollTop = originY - cfg.distance
+                    } else {
+                        // 向下滚
+                        cfg.distance = easeInOut(cfg.step, 0, cfg.max, cfg.duration)
+                        target.scrollTop = originY + cfg.distance
+                    }
+                    handle = requestAnimationFrame(slide)
+                } else {
+                    cancelAnimationFrame(handle)
+                    flag = false
+                }
+            }
+        }
+
+        function syncIndicator() {
+            var ex_indicator = document.querySelector('.fullpage-wrapper .indicator--active')
+            ex_indicator.classList.remove('indicator--active')
+            indicatorList[indicator].classList.add('indicator--active')
+        }
+
+        // 缓动函数
+        // http://easings.net/zh-cn
+        function easeInOut(t, b, c, d) {
+            if ((t /= d / 2) < 1) return c / 2 * t * t * t + b;
+            return c / 2 * ((t -= 2) * t * t + 2) + b;
+        }
+    })();
+</script>
+
+</html>
