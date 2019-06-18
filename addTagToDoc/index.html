@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="container"></div>
+</body>
+
+<style>
+    #container {
+        background: #ccc;
+        height: 800px;
+        overflow-y: auto;
+        overflow-wrap: break-word;
+    }
+    .tag-red {
+        color: #aa3300;
+        font-weight: bold;
+    }
+</style>
+
+<script src="./genDoc.js"></script>
+<script>
+
+// 返回tag html字符串
+const tagRender = ({ tagString, isNewTag, color = 'rgba(245,166,35,0.40)' }) => {
+    const objId = +Date.now()
+  if(isNewTag) {
+    return `<em class="tag-red new-tag" id="${objId}" >${tagString}</em>`;
+  } else {
+    return `<em class="tag-red exist-tag" id="${objId}" style="background: ${color}">${tagString}</em>`;
+  }
+};
+
+// 
+class SelectionControl {
+  tags = [];
+  text = '';
+  dom = null;
+
+  constructor(dom, tags) {
+    this.dom = dom;
+    tags && (this.tags = tags);
+    this.text = this.dom.textContent
+    this._init();
+  }
+
+  // 用tags 更新 text 返回更新后的 html 字符串
+  tagText() {
+    // 容错处理 去除相交的tag
+    const tags = this._unionTagList(this.tags);
+    // 倒序tag列表 根据偏移量排序
+    tags.sort((a, b) => b.offset - a.offset);
+    let text = this.text
+    // 替换文本
+    tags.forEach(tag => {
+      const { offset, length } = tag;
+      text = [
+        text.slice(0, offset),
+        tagRender(tag),
+        text.slice(offset + length),
+      ].join('');
+    });
+    return text;
+  }
+
+  // 容错处理 过滤包含标签
+  _unionTagList(tags) {
+    const resultTags = [];
+    tags.forEach(tag => {
+      const tagStart = tag.offset;
+      const tagEnd = tag.offset + tag.length;
+      //校验是否相交
+      const contain = resultTags.some(exist => {
+        const existStart = exist.offset;
+        const existEnd = exist.offset + exist.length;// 结束位置
+        // 判断包含 tag列表中有没有相交的标签
+        return Math.max(tagStart, existStart) < Math.min(tagEnd, existEnd);
+      });
+      if(!resultTags.length || !contain) {
+        resultTags.push(tag);
+      } else {
+        console.log('DrawTagException: Tag list exist intersect tag.. [TAG] ==>  ', tag);
+      }
+    });
+    return resultTags;
+  }
+
+  // 鼠标抬起事件
+  _selectChangeHandle = () => {
+    this.dom.addEventListener('mouseup', this.tagNewSelection, { once: true });
+  };
+
+  // 选择开始事件 后监听鼠标抬起事件
+  _init = () => {
+    this.dom.addEventListener('selectstart', this._selectChangeHandle);
+  };
+
+  // 增加tag
+  _tagAdd(tag) {
+    // 只保留一个当前的选中
+    this.tags = this.tags.filter(e => !e.isNewTag);
+    this.tags.push(tag);
+  }
+
+  // 注销内容
+  destroy() {
+    this.dom.removeEventListener('selectstart', this._selectChangeHandle);
+    this.tags = [];
+    this.text = null;
+  }
+
+  // 删除当前的选中
+  clear() {
+    const selection = document.getSelection();
+    selection.removeAllRanges();
+    this.tags = this.tags.filter(e => !e.isNewTag);
+    this.render();
+  }
+
+  // 挂载字符串到html容器
+  render() {
+    this.dom.innerHTML = this.tagText();
+  }
+
+  // 创建新tag
+  tagNewSelection = (e) => {
+    if(e.button !== 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.returnValue = false;
+      return false;
+    }
+    const selection = document.getSelection();
+    const {
+      anchorNode: startContainer,
+      anchorOffset: startOffset,
+      focusNode: endContainer,
+      focusOffset: endOffset,
+    } = selection;
+    // 判断 只有开始元素和结束元素 是同一个元素
+    // 并且 的父节点都是根元素
+    if(startContainer &&
+      startContainer === endContainer &&
+      startContainer.parentNode === endContainer.parentNode &&
+      startContainer.parentNode === this.dom
+    ) {
+      const parent = startContainer.parentNode;
+      let startNodeOffset = 0;
+      // 遍历父亲节点 当前节点开始的的偏移量
+      for(let i = 0; i < parent.childNodes.length; i++) {
+        const node = parent.childNodes[i];
+        if(node === startContainer) {
+          break;
+        } else {
+          startNodeOffset += node.textContent.length;
+        }
+      }
+      const offset = startNodeOffset + Math.min(startOffset, endOffset)
+      const length =  Math.abs(startOffset - endOffset)
+      const tagString = this.text.substring(offset, offset + length)
+      if (!tagString) return
+      const tag = {
+        isNewTag: true,
+        offset,
+        length,
+        tagString
+      }
+      this._tagAdd(tag);
+      // 重绘
+      this.render();
+    } else {
+      selection.removeAllRanges();
+    }
+  }
+}
+
+
+const el = document.querySelector('#container')
+// 测试文本
+let text = genDoc()
+// 替换link,script, style标签,避免overwrite全局css,去掉html标签
+// todo 正则匹配时似乎会执行文本里的可访问url,可能是js引擎的bug
+const regex = /<script.*?<\/script>|<link.*?>|<style>.*?<\/style>|<noscript>.*?<\/noscript>|<[^>]+>/gi
+const replacedText = text.replace(/[\r\n]/g, ' ').replace(regex, '')
+console.log(text)
+
+el.innerHTML = replacedText
+
+const selectionControl = new SelectionControl(el)
+
+// todo
+// 监听contextmenu事件,弹出菜单,提交标签...
+
+</script>
+</html>
