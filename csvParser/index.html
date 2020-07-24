@@ -1,0 +1,78 @@
+<!-- csv 2 json, json 2 csv -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    选择文件:<input type="file" id="input">
+    <div class="container">
+        内容区:
+        <div class="target"></div>
+    </div>
+    <div class="download">
+        <button id="download">下载</button>
+    </div>
+</body>
+<script>
+    const SUFFIX = '.csv'
+
+    const el = document.querySelector('#input')
+    const button = document.querySelector('#download')
+    const target = document.querySelector('.target')
+    let formatData = null
+    el.addEventListener('change', e => {
+        const file = e.target.files[0]
+        if (file.name.indexOf(SUFFIX) === -1) {
+            console.error('请选择csv文件')
+            return
+        }
+        const fileReader = new FileReader()
+        fileReader.readAsText(file)
+        fileReader.onload = () => {
+            const result = fileReader.result
+            formatData = result.split('\n').map(v => v.split(','))
+            const domStr = makeTable(formatData)
+            const element = new DOMParser().parseFromString(domStr, 'text/html').body
+            target.innerHTML = ''
+            target.appendChild(element)
+        }
+    })
+
+    button.addEventListener('click', () => {
+        if (!formatData) return
+        json2CSV(formatData)
+    })
+
+    function makeTable(arr) {
+        const header = arr[0]
+        const body = arr.slice(1)
+        const domStr = `<table>
+        <thead><tr>${header.map(v => `<th>${v}</th>`).join('')}</tr></thead>
+        <tbody>${body.map(v => `<tr>${v.map(m => `<td>${m}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+        return domStr
+    }
+
+    function json2CSV (arr) {
+        const BOM = '\uFEFF'
+        const csv = arr.map(v => v.join(',')).join('\n')
+        console.log(csv)
+        const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8'})
+
+        const downloadUrl = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.visibility = 'hidden'
+        a.href = downloadUrl
+        a.download = `file-${Date.now()}.csv`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(downloadUrl)
+    }
+
+</script>
+
+</html>
