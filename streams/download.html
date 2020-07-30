@@ -1,0 +1,100 @@
+<!-- 断点续传实现 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .progress-container {
+        border-radius: 4px;
+        width: 200px;
+        height: 8px;
+        border: 1px solid #ccc;
+    }
+    .progress {
+        height: 100%;
+        width: 0;
+        border-radius: 4px;
+        background: greenyellow;
+        transition: all 0.3s ease;
+    }
+</style>
+<body>
+    <div class="container">
+        文件下载进度:
+        <div class="progress-container">
+            <div class="progress"></div>
+        </div>
+        <button>click</button>
+        <img src="" alt="" width="400">
+    </div>
+    <script>
+        const target = document.querySelector('.progress')
+        const img = document.querySelector('img')
+        const button = document.querySelector('button')
+        let status = 0
+        let chunks = []
+        let length = 0
+        let total = 0
+        const progressData = (res) => {
+            if (length === 0) {
+                total = res.headers.get('content-length')
+            }
+            const reader = res.body.getReader()
+            const stream = new ReadableStream({
+                start(controller) {
+                    const push = () => {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                let chunk
+                                while (chunk = chunks.shift()) {
+                                    controller.enqueue(chunk)
+                                }
+                                controller.close()
+                                return
+                            }
+                            chunks.push(value)
+                            length += value.length
+                            target.style.width = `${length/total * 100}%`
+                            push()
+                        })
+                    }
+                    push()
+                }
+            })
+            return new Response(stream, { headers: res.headers })
+        }
+        let abortController = null
+        const startDownload = () => {
+            abortController = new AbortController()
+            fetch('http://127.0.0.1:8887/file.jpeg', {
+                headers: {
+                    Range: `bytes=${length}-`
+                },
+                signal: abortController.signal
+            }).then(progressData).then(res => res.arrayBuffer()).then(res => {
+                const blob = new Blob([res])
+                const fileReader = new FileReader()
+                fileReader.readAsDataURL(blob)
+                fileReader.onload = () => {
+                    img.src = fileReader.result
+                }
+            }).catch(e => {
+                console.error(e)
+            })
+        }
+        button.addEventListener('click', e => {
+            if (status === 0) {
+                startDownload()
+                status = 1
+            } else {
+                abortController.abort()
+                status = 0
+            }
+        })
+    </script>
+</body>
+</html>

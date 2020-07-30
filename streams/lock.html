@@ -1,0 +1,90 @@
+<!-- 中断http请求 -->
+<!-- 流的锁机制 -->
+
+<!-- 一个流只能同时有一个处于活动状态的 reader -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .progress-container {
+        border-radius: 4px;
+        width: 200px;
+        height: 8px;
+        border: 1px solid #ccc;
+    }
+    .progress {
+        height: 100%;
+        border-radius: 4px;
+        background: greenyellow;
+        transition: all 0.3s ease;
+    }
+</style>
+<body>
+    <div class="container">
+        文件下载进度:
+        <div class="progress-container">
+            <div class="progress"></div>
+        </div>
+        <button>中断</button>
+        <img src="" alt="" width="400">
+    </div>
+
+    <script>
+        const target = document.querySelector('.progress')
+        const img = document.querySelector('img')
+        const button = document.querySelector('button')
+        let aborter = null
+        const progressData = (res) => {
+            const total = res.headers.get('content-length')
+            let loaded = 0
+            const reader = res.body.getReader()
+            const stream = new ReadableStream({
+                start(controller) {
+                    let aborted = false
+                    aborter = () => {
+                        reader.cancel()
+                        // stream.cancel()
+                        // res.arrayBuffer()隐式创建了一个reader, 此时stream被lock, 无法直接stream.cancel()来中断流
+                        controller.error(new Error('中断fetch'))
+                        aborted = true
+                    }
+                    const push = () => {
+                        reader.read().then(({ value, done }) => {
+                            if (done) {
+                                if (!aborted) {
+                                    controller.close()
+                                }
+                                return
+                            }
+                            loaded += value.length
+                            target.style.width = `${loaded/total * 100}%`
+                            controller.enqueue(value)
+                            push()
+                        })
+                    }
+                    push()
+                }
+            })
+            return new Response(stream, { headers: res.headers })
+        }
+        fetch('http://127.0.0.1:8887/file.jpeg').then(progressData).then(res => res.arrayBuffer()).then(res => {
+            const blob = new Blob([res])
+            const fileReader = new FileReader()
+            fileReader.readAsDataURL(blob)
+            fileReader.onload = () => {
+                img.src = fileReader.result
+            }
+        }).catch(e => {
+            console.error(e)
+        })
+
+        button.addEventListener('click', e => {
+            aborter && aborter()
+        })
+    </script>
+</body>
+</html>

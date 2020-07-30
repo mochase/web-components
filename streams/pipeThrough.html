@@ -1,0 +1,43 @@
+<!-- 管道 -->
+<!-- 在流中直接解码 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+</head>
+<div class="container"></div>]
+<style>
+    .container {
+        width: 800px;
+    }
+</style>
+<body>
+    <script>
+        let str = ''
+        const target = document.querySelector('.container')
+        const progressData = (res) => {
+            const decoder = new TextDecoderStream('utf-8', { ignoreBOM: true })
+            const reader = res.body.pipeThrough(decoder).getReader()
+            const push = () => {
+                reader.read().then(({ value, done }) => {
+                    if (done) {
+                        console.log('done')
+                        return
+                    }
+                    str += value
+                    console.log(value)
+                    target.innerHTML = str
+                    push()
+                })
+            }
+            push()
+        }
+        fetch('http://127.0.0.1:8887/test.txt').then(progressData)
+        
+    </script>
+</body>
+</html>

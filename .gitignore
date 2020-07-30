@@ -1,3 +1,4 @@
 .sass-cache
 *.map
 .DS_Store
+.vscode

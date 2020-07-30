@@ -1,0 +1,65 @@
+<!-- 文件实时下载进度 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .progress-container {
+        border-radius: 4px;
+        width: 200px;
+        height: 8px;
+        border: 1px solid #ccc;
+    }
+    .progress {
+        height: 100%;
+        border-radius: 4px;
+        background: greenyellow;
+        transition: all 0.3s ease;
+    }
+</style>
+<body>
+    <div class="container">
+        文件下载进度:
+        <div class="progress-container">
+            <div class="progress"></div>
+        </div>
+        <img src="" alt="" width="400">
+    </div>
+
+    <script>
+        const target = document.querySelector('.progress')
+        const img = document.querySelector('img')
+        const progressData = (res) => {
+            const total = res.headers.get('content-length')
+            let loaded = 0
+            const [progressStream, returnStream] = res.body.tee()
+            const reader = progressStream.getReader()
+            const log = () => {
+                reader.read().then(res => {
+                    if (res.done) {
+                        return
+                    }
+                    loaded += res.value.length
+                    target.style.width = `${loaded/total * 100}%`
+                    console.log(`downloaded: ${loaded} / ${total} (${(loaded / total * 100).toFixed(2)}%)`)
+                    log()
+                })
+            }
+            log()
+            return new Response(returnStream, { headers: res.headers })
+        }
+        fetch('http://127.0.0.1:8887/file.jpeg').then(progressData).then(res => res.arrayBuffer()).then(res => {
+            const blob = new Blob([res])
+            const fileReader = new FileReader()
+            fileReader.readAsDataURL(blob)
+            fileReader.onload = () => {
+                img.src = fileReader.result
+            }
+        })
+    </script>
+</body>
+</html>
